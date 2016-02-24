@@ -1,3 +1,13 @@
+const {Provider, connect} = ReactRedux;
+const {bindActionCreators, createStore} = Redux;
+
+// Actions
+const actions = {
+	increment: () => ({type: 'INCREMENT'}),
+	decrement: () => ({type: 'DECREMENT'})
+}
+
+// Reducers
 const counter = (state = 0, action) => {
 	switch (action.type) {
 		case 'INCREMENT':
@@ -9,39 +19,47 @@ const counter = (state = 0, action) => {
 	}
 }
 
+// Components
 const CounterButton = ({text, ...props}) => (
 	<button {...props}>{text}</button>
 );
 
-const Counter = ({ value, onIncrement, onDecrement}) => (
+const Counter = ({increment, decrement, ...props}) => (
 	<div>
-		<CounterButton onClick={onIncrement} text='+'></CounterButton>
-		<CounterButton onClick={onDecrement} text='-'></CounterButton>
-		<div>{value}</div>
+		<CounterButton onClick={increment} text='+'></CounterButton>
+		<CounterButton onClick={decrement} text='-'></CounterButton>
+		<div>{props.counter}</div>
 	</div>
 );
 
-const { createStore } = Redux;
+// Create store with reducers
 const store = createStore(counter);
 
-const render = () => {
-	ReactDOM.render(
-		<Counter
-			value={store.getState()}
-			onIncrement={() =>
-				store.dispatch({
-					type: 'INCREMENT'
-				})
-			}
-			onDecrement={() =>
-				store.dispatch({
-					type: 'DECREMENT'
-				})
-			}
-		/>,
-		document.getElementById('app')
-	);
-};
+// App container
+const mapStateToProps = state => ({
+	counter
+});
 
-store.subscribe(render);
-render();
+const mapDispatchToProps = dispatch => (
+	bindActionCreators(
+		{
+			increment: actions.increment,
+			decrement: actions.decrement
+		},
+		dispatch
+	)
+);
+
+const App = connect(mapStateToProps, mapDispatchToProps)(Counter);
+
+const Root = ({store}) => (
+	<Provider store={store}>
+		<App />
+	</Provider>
+);
+
+ReactDOM.render(
+	<Root store={store} />,
+	document.getElementById('app')
+);
+
