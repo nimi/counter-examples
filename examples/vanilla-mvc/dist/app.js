@@ -28,6 +28,7 @@ var Model = function () {
 		_classCallCheck(this, Model);
 
 		this.storage = storage;
+		this.ee = new EventEmitter();
 	}
 
 	_createClass(Model, [{
@@ -39,6 +40,7 @@ var Model = function () {
 		key: 'update',
 		value: function update(value) {
 			this.storage.update(value);
+			this.ee.emit('counterUpdated', value);
 		}
 	}]);
 
@@ -51,11 +53,12 @@ var Model = function () {
 
 
 var View = function () {
-	function View(container) {
+	function View(container, model) {
 		var _this = this;
 
 		_classCallCheck(this, View);
 
+		this.model = model;
 		this.container = container;
 		this.appName = 'Vanilla JavaScript (MVC)';
 		this.incrementButton = 'inc';
@@ -77,6 +80,10 @@ var View = function () {
 				return _this.counterTotal().innerHTML = value;
 			}
 		};
+
+		this.model.ee.addListener('counterUpdated', function (value) {
+			_this.render('updateCounter', value);
+		});
 	}
 
 	_createClass(View, [{
@@ -130,14 +137,12 @@ var Controller = function () {
 		value: function increment() {
 			var newValue = this.model.read() + 1;
 			this.model.update(newValue);
-			this._updateCount(newValue);
 		}
 	}, {
 		key: 'decrement',
 		value: function decrement() {
 			var newValue = this.model.read() - 1;
 			this.model.update(newValue);
-			this._updateCount(newValue);
 		}
 	}, {
 		key: '_bindEvents',
@@ -150,11 +155,6 @@ var Controller = function () {
 			this.view.bind('decrement', function () {
 				return _this2.decrement();
 			});
-		}
-	}, {
-		key: '_updateCount',
-		value: function _updateCount(value) {
-			this.view.render('updateCounter', value);
 		}
 	}]);
 
@@ -172,7 +172,7 @@ var Counter = function Counter(container) {
 	this.storage = Database;
 
 	this.model = new Model(Database);
-	this.view = new View(container);
+	this.view = new View(container, this.model);
 	this.controller = new Controller(this.model, this.view);
 };
 
