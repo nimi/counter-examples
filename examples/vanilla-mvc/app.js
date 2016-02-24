@@ -15,6 +15,7 @@ const Database = {
 class Model {
 	constructor(storage) {
 		this.storage = storage;
+		this.ee = new EventEmitter();
 	}
 
 	read() {
@@ -23,6 +24,7 @@ class Model {
 
 	update(value) {
 		this.storage.update(value);
+		this.ee.emit('counterUpdated', value)
 	}
 }
 
@@ -30,7 +32,8 @@ class Model {
 * Counter view
  */
 class View {
-	constructor(container) {
+	constructor(container, model) {
+		this.model = model;
 		this.container = container;
 		this.appName = 'Vanilla JavaScript (MVC)';
 		this.incrementButton = 'inc';
@@ -42,6 +45,10 @@ class View {
 			showCounter: value => this.container.innerHTML = this.showTemplate(value),
 			updateCounter: value => this.counterTotal().innerHTML = value
 		};
+
+		this.model.ee.addListener('counterUpdated', value => {
+			this.render('updateCounter', value);
+		});
 	}
 
 	render(command, value) {
@@ -85,22 +92,16 @@ class Controller {
 	increment() {
 		const newValue = this.model.read() + 1;
 		this.model.update(newValue);
-		this._updateCount(newValue);
 	}
 
 	decrement() {
 		const newValue = this.model.read() - 1;
 		this.model.update(newValue);
-		this._updateCount(newValue);
 	}
 
 	_bindEvents() {
 		this.view.bind('increment', () => this.increment());
 		this.view.bind('decrement', () => this.decrement());
-	}
-
-	_updateCount(value) {
-		this.view.render('updateCounter', value);
 	}
 
 }
@@ -113,7 +114,7 @@ class Counter {
 		this.storage = Database;
 
 		this.model = new Model(Database);
-		this.view = new View(container);
+		this.view = new View(container, this.model);
 		this.controller = new Controller(this.model, this.view);
 	}
 }
