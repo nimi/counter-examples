@@ -4,15 +4,18 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import StartApp.Simple as App
 
+-- Model
 type alias Model = Int
 type Action = Increment | Decrement
 
+-- Update
 update : Action -> Model -> Model
 update action model =
   case action of
     Increment -> model + 1
     Decrement -> model - 1
 
+-- View
 view : Signal.Address Action -> Model -> Html
 view address model =
   div []
