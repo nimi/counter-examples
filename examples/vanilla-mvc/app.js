@@ -76,7 +76,7 @@ class View {
 }
 
 /**
-* Counter view
+* Counter controller
  */
 class Controller {
 	constructor(model, view) {
